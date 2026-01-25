@@ -4,6 +4,7 @@
  */
 
 import Fastify from 'fastify';
+import cors from '@fastify/cors';
 
 // Initialize Fastify instance with logging enabled for development
 const app = Fastify({
@@ -11,7 +12,7 @@ const app = Fastify({
 });
 
 // Enable CORS to allow frontend to communicate with backend
-await app.register(import('@fastify/cors'), {
+await app.register(cors, {
   origin: 'http://localhost:5173', // Vite dev server default port
   credentials: true
 });
