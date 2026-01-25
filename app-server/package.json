@@ -1,0 +1,14 @@
+{
+  "name": "app-server",
+  "version": "1.0.0",
+  "description": "Smart POS Backend API",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": ["pos", "fastify", "api"],
+  "author": "",
+  "license": "ISC"
+}
