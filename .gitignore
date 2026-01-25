@@ -4,6 +4,7 @@
 plan.txt
 notes.txt
 todo.txt
+ROADMAP.md
 
 # Node modules (in case any are at root)
 node_modules/

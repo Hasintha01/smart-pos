@@ -12,34 +12,130 @@ datasource db {
 
 // Product model for inventory management
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String
-  price       Float
-  quantity    Int      @default(0)
-  category    String?
-  barcode     String?  @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  name          String
+  sku           String?  @unique  // Stock Keeping Unit - internal product code
+  description   String?            // Detailed product description
+  barcode       String?  @unique   // External barcode for scanning
   
-  // Relation to sales
-  saleItems   SaleItem[]
+  // Pricing information
+  costPrice     Float              // Purchase/cost price for profit calculation
+  sellingPrice  Float              // Selling price shown to customers
+  
+  // Inventory tracking
+  quantity      Int      @default(0)        // Current stock quantity
+  reorderLevel  Int      @default(10)       // Minimum stock before reorder alert
+  
+  // Status and organization
+  isActive      Boolean  @default(true)     // Soft delete flag
+  categoryId    Int?                        // Link to category (optional for now)
+  supplierId    Int?                        // Link to supplier (optional for now)
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  category      Category? @relation(fields: [categoryId], references: [id])
+  supplier      Supplier? @relation(fields: [supplierId], references: [id])
+  saleItems     SaleItem[]
+  stockMovements StockMovement[]         // All inventory movements for this product
+}
+
+// Category model for product organization
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique           // Category name (e.g., "Beverages", "Snacks")
+  description String?                     // Optional category description
+  isActive    Boolean   @default(true)    // Soft delete flag
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  products    Product[]                   // All products in this category
+}
+
+// Supplier model for tracking product sources
+model Supplier {
+  id            Int       @id @default(autoincrement())
+  name          String                    // Supplier/vendor name
+  contactPerson String?                   // Contact person name
+  phone         String?                   // Contact phone number
+  email         String?                   // Contact email
+  address       String?                   // Physical address
+  isActive      Boolean   @default(true)  // Soft delete flag
+  
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  products      Product[]                 // All products from this supplier
+}
+
+// Role model for permission management
+model Role {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique           // Role name (e.g., "Admin", "Cashier", "Manager")
+  permissions String                      // JSON string of permissions
+  description String?                     // Role description
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  users       User[]                      // All users with this role
+}
+
+// User model for authentication and authorization
+model User {
+  id          Int       @id @default(autoincrement())
+  username    String    @unique           // Unique username for login
+  email       String?   @unique           // Optional email
+  password    String                      // Hashed password (bcrypt)
+  fullName    String?                     // User's full name
+  isActive    Boolean   @default(true)    // Soft delete / account status
+  
+  // Role and permissions
+  roleId      Int                         // Link to role
+  role        Role      @relation(fields: [roleId], references: [id])
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?                   // Track last login time
+  
+  // Relations
+  sales          Sale[]                   // Sales made by this user
+  expenses       Expense[]                // Expenses recorded by this user
+  stockMovements StockMovement[]          // Stock movements made by this user
 }
 
 // Sale model for transaction records
 model Sale {
   id          Int      @id @default(autoincrement())
   total       Float
+  
+  // User tracking
+  userId      Int?                        // User who made this sale
+  user        User?    @relation(fields: [userId], references: [id])
+  
+  // Timestamps
   createdAt   DateTime @default(now())
   
-  // Relation to sale items
+  // Relations
   items       SaleItem[]
+  payments    Payment[]
 }
 
 // SaleItem model for individual items in a sale
 model SaleItem {
   id          Int      @id @default(autoincrement())
   quantity    Int
-  price       Float
+  price       Float                       // Price at time of sale (frozen)
   
   // Relations
   productId   Int
@@ -47,4 +143,56 @@ model SaleItem {
   
   saleId      Int
   sale        Sale     @relation(fields: [saleId], references: [id])
+}
+
+// Payment model for tracking payment methods
+model Payment {
+  id            Int      @id @default(autoincrement())
+  amount        Float                     // Amount paid
+  paymentMethod String                    // "cash", "card", "mobile", "credit"
+  reference     String?                   // Transaction reference (for cards/mobile)
+  
+  // Relations
+  saleId        Int
+  sale          Sale     @relation(fields: [saleId], references: [id])
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+}
+
+// Expense model for business cost tracking
+model Expense {
+  id          Int      @id @default(autoincrement())
+  description String                      // Expense description
+  amount      Float                       // Expense amount
+  category    String                      // "rent", "utilities", "salaries", "supplies", "other"
+  reference   String?                     // Receipt/invoice number
+  notes       String?                     // Additional notes
+  
+  // User tracking
+  userId      Int?                        // User who recorded this expense
+  user        User?    @relation(fields: [userId], references: [id])
+  
+  // Timestamps
+  expenseDate DateTime                    // Date of expense
+  createdAt   DateTime @default(now())
+}
+
+// StockMovement model for inventory tracking and audit trail
+model StockMovement {
+  id          Int      @id @default(autoincrement())
+  quantity    Int                         // Quantity changed (positive = added, negative = removed)
+  type        String                      // "purchase", "sale", "adjustment", "damage", "return"
+  reason      String?                     // Reason for adjustment/damage
+  reference   String?                     // PO number, invoice, etc.
+  
+  // Relations
+  productId   Int
+  product     Product  @relation(fields: [productId], references: [id])
+  
+  userId      Int?                        // User who made this movement
+  user        User?    @relation(fields: [userId], references: [id])
+  
+  // Timestamps
+  createdAt   DateTime @default(now())
 }
