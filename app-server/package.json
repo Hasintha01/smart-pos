@@ -6,7 +6,11 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "seed": "node prisma/seed.js"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   },
   "keywords": [
     "pos",
@@ -17,8 +21,11 @@
   "license": "ISC",
   "dependencies": {
     "@fastify/cors": "^11.2.0",
+    "@fastify/jwt": "^10.0.0",
     "@prisma/client": "^5.22.0",
+    "bcryptjs": "^3.0.3",
     "fastify": "^5.7.1",
+    "jsonwebtoken": "^9.0.3",
     "prisma": "^5.22.0"
   }
 }

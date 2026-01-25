@@ -5,6 +5,7 @@
 
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import authRoutes from './routes/auth.js';
 
 // Initialize Fastify instance with logging enabled for development
 const app = Fastify({
@@ -16,6 +17,9 @@ await app.register(cors, {
   origin: 'http://localhost:5173', // Vite dev server default port
   credentials: true
 });
+
+// Register authentication routes
+await app.register(authRoutes);
 
 /**
  * Health check endpoint
