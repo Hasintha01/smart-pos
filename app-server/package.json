@@ -8,7 +8,17 @@
     "start": "node index.js",
     "dev": "node --watch index.js"
   },
-  "keywords": ["pos", "fastify", "api"],
+  "keywords": [
+    "pos",
+    "fastify",
+    "api"
+  ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@prisma/client": "^7.3.0",
+    "fastify": "^5.7.1",
+    "prisma": "^7.3.0"
+  }
 }
