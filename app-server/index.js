@@ -6,6 +6,8 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import authRoutes from './routes/auth.js';
+import productRoutes from './routes/products.js';
+import salesRoutes from './routes/sales.js';
 
 // Initialize Fastify instance with logging enabled for development
 const app = Fastify({
@@ -18,8 +20,10 @@ await app.register(cors, {
   credentials: true
 });
 
-// Register authentication routes
+// Register routes
 await app.register(authRoutes);
+await app.register(productRoutes);
+await app.register(salesRoutes);
 
 /**
  * Health check endpoint

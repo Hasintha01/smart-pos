@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import PaymentModal from '../components/PaymentModal';
+import Receipt from '../components/Receipt';
 import '../styles/POSScreen.css';
 
 function POSScreen() {
@@ -7,18 +8,47 @@ function POSScreen() {
   const [cart, setCart] = useState([]);
   const [selectedCartIndex, setSelectedCartIndex] = useState(-1);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [lastSale, setLastSale] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const searchInputRef = useRef(null);
 
-  // Mock products (replace with API call later)
-  const [products] = useState([
-    { id: 1, name: 'Coca Cola 330ml', price: 150, barcode: '12345' },
-    { id: 2, name: 'Milo Packet 400g', price: 850, barcode: '23456' },
-    { id: 3, name: 'Bread - White', price: 120, barcode: '34567' },
-    { id: 4, name: 'Rice 1kg', price: 280, barcode: '45678' },
-    { id: 5, name: 'Dhal 500g', price: 320, barcode: '56789' },
-  ]);
+  // Fetch products from API
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:3001/api/products');
+      const data = await response.json();
+      
+      if (data.success) {
+        setProducts(data.data);
+        setError(null);
+      } else {
+        setError('Failed to load products');
+      }
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError('Unable to connect to server. Using offline mode.');
+      // Fallback to mock data if server is down
+      setProducts([
+        { id: 1, name: 'Coca Cola 330ml', sellingPrice: 150, barcode: '12345' },
+        { id: 2, name: 'Milo Packet 400g', sellingPrice: 850, barcode: '23456' },
+        { id: 3, name: 'Bread - White', sellingPrice: 120, barcode: '34567' },
+        { id: 4, name: 'Rice 1kg', sellingPrice: 280, barcode: '45678' },
+        { id: 5, name: 'Dhal 500g', sellingPrice: 320, barcode: '56789' },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
   // Auto focus search on mount
   useEffect(() => {
@@ -37,7 +67,7 @@ function POSScreen() {
   }, [searchQuery, products]);
 
   // Calculate totals
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const subtotal = cart.reduce((sum, item) => sum + (item.sellingPrice || item.price) * item.qty, 0);
   const discount = 0; // TODO: Add discount logic
   const total = subtotal - discount;
 
@@ -51,8 +81,12 @@ function POSScreen() {
       newCart[existingIndex].qty += 1;
       setCart(newCart);
     } else {
-      // Add new item
-      setCart([...cart, { ...product, qty: 1 }]);
+      // Add new item (normalize price field)
+      setCart([...cart, { 
+        ...product, 
+        qty: 1,
+        price: product.sellingPrice || product.price 
+      }]);
     }
     
     // Clear search and refocus
@@ -147,15 +181,71 @@ function POSScreen() {
   }, [cart, selectedCartIndex, filteredProducts]);
 
   // Handle payment completion
-  const handlePaymentComplete = () => {
-    // TODO: Save sale to backend
-    console.log('Sale completed:', { cart, total });
-    
-    // Clear cart and close modal
-    setCart([]);
-    setShowPaymentModal(false);
-    setSelectedCartIndex(-1);
-    searchInputRef.current?.focus();
+  const handlePaymentComplete = async (paymentData) => {
+    try {
+      // Prepare sale data
+      const saleData = {
+        items: cart.map(item => ({
+          productId: item.id,
+          quantity: item.qty,
+          price: item.price || item.sellingPrice
+        })),
+        subtotal,
+        discount,
+        total,
+        paymentType: paymentData.paymentType,
+        cashAmount: paymentData.cash,
+        changeAmount: paymentData.balance
+      };
+
+      // Save sale to backend
+      const response = await fetch('http://localhost:3001/api/sales', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(saleData)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('Sale saved successfully:', result.data);
+        
+        // Prepare receipt data
+        const receiptData = {
+          saleId: result.data.id,
+          items: cart,
+          subtotal,
+          discount,
+          total,
+          paymentType: paymentData.paymentType,
+          cash: paymentData.cash,
+          balance: paymentData.balance,
+          timestamp: new Date()
+        };
+        
+        // Close payment modal
+        setShowPaymentModal(false);
+        
+        // Clear cart
+        setCart([]);
+        setSelectedCartIndex(-1);
+        
+        // Show receipt
+        setLastSale(receiptData);
+        setShowReceipt(true);
+        
+        // Refocus search
+        searchInputRef.current?.focus();
+      } else {
+        console.error('Failed to save sale:', result.error);
+        alert('Sale completed but failed to save: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error saving sale:', error);
+      alert('Sale completed but failed to save. Check console for details.');
+    }
   };
 
   // Format currency
@@ -165,15 +255,6 @@ function POSScreen() {
 
   return (
     <div className="pos-screen">
-      {/* Header */}
-      <header className="pos-header">
-        <h1>Smart POS</h1>
-        <div className="header-info">
-          <span>{new Date().toLocaleDateString()}</span>
-          <span>Cashier: Admin</span>
-        </div>
-      </header>
-
       {/* Main Content */}
       <div className="pos-content">
         {/* Left: Product Area */}
@@ -187,23 +268,30 @@ function POSScreen() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+            {error && <div className="error-banner">{error}</div>}
           </div>
 
-          <div className="product-list">
-            {filteredProducts.map((product) => (
-              <div
-                key={product.id}
-                className="product-item"
-                onClick={() => addToCart(product)}
-              >
-                <div className="product-name">{product.name}</div>
-                <div className="product-price">{formatCurrency(product.price)}</div>
+          {loading ? (
+            <div className="loading-state">Loading products...</div>
+          ) : (
+            <>
+              <div className="product-list">
+                {filteredProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="product-item"
+                    onClick={() => addToCart(product)}
+                  >
+                    <div className="product-name">{product.name}</div>
+                    <div className="product-price">{formatCurrency(product.sellingPrice || product.price)}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          {filteredProducts.length === 0 && (
-            <div className="no-products">No products found</div>
+              {filteredProducts.length === 0 && !loading && (
+                <div className="no-products">No products found</div>
+              )}
+            </>
           )}
         </div>
 
@@ -246,8 +334,8 @@ function POSScreen() {
                       +
                     </button>
                   </div>
-                  <div className="item-price">{formatCurrency(item.price)}</div>
-                  <div className="item-total">{formatCurrency(item.price * item.qty)}</div>
+                  <div className="item-price">{formatCurrency(item.price || item.sellingPrice)}</div>
+                  <div className="item-total">{formatCurrency((item.price || item.sellingPrice) * item.qty)}</div>
                   <button
                     className="remove-btn"
                     onClick={(e) => {
@@ -304,6 +392,14 @@ function POSScreen() {
           total={total}
           onClose={() => setShowPaymentModal(false)}
           onComplete={handlePaymentComplete}
+        />
+      )}
+
+      {/* Receipt */}
+      {showReceipt && lastSale && (
+        <Receipt
+          sale={lastSale}
+          onClose={() => setShowReceipt(false)}
         />
       )}
     </div>

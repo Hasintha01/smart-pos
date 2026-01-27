@@ -1,0 +1,73 @@
+/* Navigation Styles */
+.main-nav {
+  background: #2c3e50;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.nav-brand h2 {
+  margin: 0;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-link {
+  padding: 0.75rem 1.5rem;
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-link:hover {
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.nav-link.active {
+  background: #3498db;
+  color: white;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app-container > * {
+  flex: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main-nav {
+    padding: 1rem;
+  }
+  
+  .nav-brand h2 {
+    font-size: 1.2rem;
+  }
+  
+  .nav-links {
+    gap: 0.5rem;
+  }
+  
+  .nav-link {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}
