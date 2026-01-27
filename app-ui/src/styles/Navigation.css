@@ -42,6 +42,45 @@
   color: white;
 }
 
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: white;
+  padding: 0.5rem 1rem;
+  background: rgba(255,255,255,0.1);
+  border-radius: 6px;
+}
+
+.user-role {
+  color: rgba(255,255,255,0.7);
+  font-size: 0.9rem;
+}
+
+.logout-btn {
+  padding: 0.5rem 1rem;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logout-btn:hover {
+  background: #c0392b;
+}
+
 .app-container {
   display: flex;
   flex-direction: column;
@@ -56,6 +95,7 @@
 @media (max-width: 768px) {
   .main-nav {
     padding: 1rem;
+    flex-wrap: wrap;
   }
   
   .nav-brand h2 {
@@ -69,5 +109,15 @@
   .nav-link {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
+  }
+
+  .nav-user {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+  }
+
+  .user-info {
+    font-size: 0.85rem;
   }
 }

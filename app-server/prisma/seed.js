@@ -1,93 +1,54 @@
 /**
  * Database Seed Script
  * Populates the database with initial data:
- * - Default roles (Admin, Manager, Cashier)
- * - Default admin user
+ * - Default users (Admin, Cashier)
  */
 
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import { hashPassword } from '../utils/auth.js';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('Starting database seed...');
 
-  // Create default roles
-  const adminRole = await prisma.role.upsert({
-    where: { name: 'Admin' },
-    update: {},
-    create: {
-      name: 'Admin',
-      description: 'Full system access - can manage users, view all reports, modify settings',
-      permissions: JSON.stringify({
-        users: ['create', 'read', 'update', 'delete'],
-        products: ['create', 'read', 'update', 'delete'],
-        sales: ['create', 'read', 'update', 'delete'],
-        reports: ['view_profit', 'view_all'],
-        settings: ['manage']
-      })
-    }
-  });
+  // Hash passwords
+  const adminPassword = await hashPassword('admin123');
+  const cashierPassword = await hashPassword('cashier123');
 
-  const managerRole = await prisma.role.upsert({
-    where: { name: 'Manager' },
-    update: {},
-    create: {
-      name: 'Manager',
-      description: 'Can manage inventory and view reports, cannot manage users',
-      permissions: JSON.stringify({
-        products: ['create', 'read', 'update'],
-        sales: ['read'],
-        reports: ['view_sales', 'view_inventory'],
-        expenses: ['create', 'read']
-      })
-    }
-  });
-
-  const cashierRole = await prisma.role.upsert({
-    where: { name: 'Cashier' },
-    update: {},
-    create: {
-      name: 'Cashier',
-      description: 'Can only make sales, no access to costs or profits',
-      permissions: JSON.stringify({
-        sales: ['create'],
-        products: ['read']
-      })
-    }
-  });
-
-  console.log('✅ Roles created:', { adminRole, managerRole, cashierRole });
-
-  // Create default admin user
-  // Password: admin123 (should be changed on first login in production)
-  const hashedPassword = await bcrypt.hash('admin123', 10);
-
+  // Create users
   const adminUser = await prisma.user.upsert({
     where: { username: 'admin' },
     update: {},
     create: {
       username: 'admin',
-      email: 'admin@smartpos.local',
-      password: hashedPassword,
+      password: adminPassword,
       fullName: 'System Administrator',
-      roleId: adminRole.id,
-      isActive: true
+      role: 'ADMIN'
     }
   });
 
-  console.log('✅ Admin user created:', {
-    username: adminUser.username,
-    email: adminUser.email,
-    role: 'Admin'
+  const cashierUser = await prisma.user.upsert({
+    where: { username: 'cashier1' },
+    update: {},
+    create: {
+      username: 'cashier1',
+      password: cashierPassword,
+      fullName: 'Kasun Perera',
+      role: 'CASHIER'
+    }
+  });
+
+  console.log('✅ Users created:', { 
+    admin: adminUser.username,
+    cashier: cashierUser.username 
   });
 
   console.log('\n🎉 Database seeding completed!');
   console.log('\n📝 Default Login Credentials:');
-  console.log('   Username: admin');
-  console.log('   Password: admin123');
-  console.log('\n⚠️  IMPORTANT: Change the admin password after first login!\n');
+  console.log('   Admin: username = admin, password = admin123');
+  console.log('   Cashier: username = cashier1, password = cashier123');
+  console.log('\n⚠️  IMPORTANT: Change passwords after first login!\n');
 }
 
 main()

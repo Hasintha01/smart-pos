@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import PaymentModal from '../components/PaymentModal';
 import Receipt from '../components/Receipt';
+import { authFetch } from '../utils/api';
 import '../styles/POSScreen.css';
 
 function POSScreen() {
@@ -23,7 +24,7 @@ function POSScreen() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3001/api/products');
+      const response = await authFetch('http://localhost:3001/api/products');
       const data = await response.json();
       
       if (data.success) {
@@ -34,15 +35,7 @@ function POSScreen() {
       }
     } catch (err) {
       console.error('Error fetching products:', err);
-      setError('Unable to connect to server. Using offline mode.');
-      // Fallback to mock data if server is down
-      setProducts([
-        { id: 1, name: 'Coca Cola 330ml', sellingPrice: 150, barcode: '12345' },
-        { id: 2, name: 'Milo Packet 400g', sellingPrice: 850, barcode: '23456' },
-        { id: 3, name: 'Bread - White', sellingPrice: 120, barcode: '34567' },
-        { id: 4, name: 'Rice 1kg', sellingPrice: 280, barcode: '45678' },
-        { id: 5, name: 'Dhal 500g', sellingPrice: 320, barcode: '56789' },
-      ]);
+      setError('Unable to connect to server.');
     } finally {
       setLoading(false);
     }
@@ -199,11 +192,8 @@ function POSScreen() {
       };
 
       // Save sale to backend
-      const response = await fetch('http://localhost:3001/api/sales', {
+      const response = await authFetch('http://localhost:3001/api/sales', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify(saleData)
       });
 

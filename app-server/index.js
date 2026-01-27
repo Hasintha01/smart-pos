@@ -5,6 +5,7 @@
 
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import cookie from '@fastify/cookie';
 import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import salesRoutes from './routes/sales.js';
@@ -16,9 +17,12 @@ const app = Fastify({
 
 // Enable CORS to allow frontend to communicate with backend
 await app.register(cors, {
-  origin: 'http://localhost:5173', // Vite dev server default port
+  origin: ['http://localhost:5173', 'http://localhost:5174'], // Vite dev server ports
   credentials: true
 });
+
+// Register cookie parser
+await app.register(cookie);
 
 // Register routes
 await app.register(authRoutes);

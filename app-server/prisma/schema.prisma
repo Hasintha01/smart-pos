@@ -75,43 +75,21 @@ model Supplier {
   products      Product[]                 // All products from this supplier
 }
 
-// Role model for permission management
-model Role {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique           // Role name (e.g., "Admin", "Cashier", "Manager")
-  permissions String                      // JSON string of permissions
-  description String?                     // Role description
-  
-  // Timestamps
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  // Relations
-  users       User[]                      // All users with this role
-}
-
 // User model for authentication and authorization
 model User {
   id          Int       @id @default(autoincrement())
   username    String    @unique           // Unique username for login
-  email       String?   @unique           // Optional email
   password    String                      // Hashed password (bcrypt)
-  fullName    String?                     // User's full name
+  fullName    String                      // User's full name
+  role        String    @default("CASHIER") // User role: ADMIN, MANAGER, CASHIER
   isActive    Boolean   @default(true)    // Soft delete / account status
-  
-  // Role and permissions
-  roleId      Int                         // Link to role
-  role        Role      @relation(fields: [roleId], references: [id])
   
   // Timestamps
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  lastLoginAt DateTime?                   // Track last login time
   
   // Relations
   sales          Sale[]                   // Sales made by this user
-  expenses       Expense[]                // Expenses recorded by this user
-  stockMovements StockMovement[]          // Stock movements made by this user
 }
 
 // Sale model for transaction records
@@ -120,8 +98,8 @@ model Sale {
   total       Float
   
   // User tracking
-  userId      Int?                        // User who made this sale
-  user        User?    @relation(fields: [userId], references: [id])
+  userId      Int                         // User who made this sale (required)
+  user        User     @relation(fields: [userId], references: [id])
   
   // Timestamps
   createdAt   DateTime @default(now())
@@ -169,10 +147,6 @@ model Expense {
   reference   String?                     // Receipt/invoice number
   notes       String?                     // Additional notes
   
-  // User tracking
-  userId      Int?                        // User who recorded this expense
-  user        User?    @relation(fields: [userId], references: [id])
-  
   // Timestamps
   expenseDate DateTime                    // Date of expense
   createdAt   DateTime @default(now())
@@ -189,9 +163,6 @@ model StockMovement {
   // Relations
   productId   Int
   product     Product  @relation(fields: [productId], references: [id])
-  
-  userId      Int?                        // User who made this movement
-  user        User?    @relation(fields: [userId], references: [id])
   
   // Timestamps
   createdAt   DateTime @default(now())

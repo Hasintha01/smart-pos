@@ -1,25 +1,85 @@
 /**
  * Smart POS Frontend Application
- * Main App component with routing
+ * Main App component with routing and authentication
  */
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import POSScreen from './pages/POSScreen';
 import ProductsPage from './pages/ProductsPage';
+import LoginPage from './pages/LoginPage';
 import Navigation from './components/Navigation';
 import './index.css';
+
+// Protected Route Component
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        fontSize: '1.2rem',
+        color: '#666'
+      }}>
+        Loading...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+function AppContent() {
+  const { user } = useAuth();
+
+  return (
+    <div className="app-container">
+      {user && <Navigation />}
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route 
+          path="/" 
+          element={
+            <ProtectedRoute>
+              <Navigate to="/pos" replace />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/pos" 
+          element={
+            <ProtectedRoute>
+              <POSScreen />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/products" 
+          element={
+            <ProtectedRoute>
+              <ProductsPage />
+            </ProtectedRoute>
+          } 
+        />
+      </Routes>
+    </div>
+  );
+}
 
 function App() {
   return (
     <Router>
-      <div className="app-container">
-        <Navigation />
-        <Routes>
-          <Route path="/" element={<Navigate to="/pos" replace />} />
-          <Route path="/pos" element={<POSScreen />} />
-          <Route path="/products" element={<ProductsPage />} />
-        </Routes>
-      </div>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </Router>
   );
 }

@@ -5,27 +5,25 @@
 
 import { PrismaClient } from '@prisma/client';
 import { hashPassword, comparePassword, generateToken } from '../utils/auth.js';
+import { authenticate } from '../middleware/auth.js';
 
 const prisma = new PrismaClient();
 
-/**
- * Register authentication routes
- * @param {FastifyInstance} app - Fastify app instance
- */
 export default async function authRoutes(app) {
-  
+
   /**
    * POST /api/auth/register
-   * Register a new user (Admin only in production)
+   * Register a new user (Admin only in production - add middleware later)
    */
   app.post('/api/auth/register', async (request, reply) => {
     try {
-      const { username, email, password, fullName, roleId } = request.body;
+      const { username, password, fullName, role } = request.body;
 
       // Validate required fields
-      if (!username || !password || !roleId) {
-        return reply.status(400).send({
-          error: 'Username, password, and roleId are required'
+      if (!username || !password || !fullName) {
+        return reply.status(400).send({ 
+          success: false, 
+          message: 'Username, password, and full name are required.' 
         });
       }
 
@@ -35,32 +33,9 @@ export default async function authRoutes(app) {
       });
 
       if (existingUser) {
-        return reply.status(409).send({
-          error: 'Username already exists'
-        });
-      }
-
-      // Check if email already exists (if provided)
-      if (email) {
-        const existingEmail = await prisma.user.findUnique({
-          where: { email }
-        });
-
-        if (existingEmail) {
-          return reply.status(409).send({
-            error: 'Email already exists'
-          });
-        }
-      }
-
-      // Verify role exists
-      const role = await prisma.role.findUnique({
-        where: { id: roleId }
-      });
-
-      if (!role) {
-        return reply.status(400).send({
-          error: 'Invalid role ID'
+        return reply.status(400).send({ 
+          success: false, 
+          message: 'Username already exists.' 
         });
       }
 
@@ -71,29 +46,30 @@ export default async function authRoutes(app) {
       const user = await prisma.user.create({
         data: {
           username,
-          email,
           password: hashedPassword,
           fullName,
-          roleId,
-          isActive: true
+          role: role || 'CASHIER'
         },
-        include: {
-          role: true
+        select: {
+          id: true,
+          username: true,
+          fullName: true,
+          role: true,
+          isActive: true,
+          createdAt: true
         }
       });
 
-      // Remove password from response
-      const { password: _, ...userWithoutPassword } = user;
-
-      return reply.status(201).send({
-        message: 'User registered successfully',
-        user: userWithoutPassword
+      return reply.status(201).send({ 
+        success: true, 
+        message: 'User created successfully.',
+        data: user 
       });
-
     } catch (error) {
-      app.log.error(error);
-      return reply.status(500).send({
-        error: 'Failed to register user'
+      app.log.error('Register error:', error);
+      return reply.status(500).send({ 
+        success: false, 
+        message: 'Failed to register user.' 
       });
     }
   });
@@ -106,144 +82,113 @@ export default async function authRoutes(app) {
     try {
       const { username, password } = request.body;
 
-      // Validate required fields
+      // Validation
       if (!username || !password) {
-        return reply.status(400).send({
-          error: 'Username and password are required'
+        return reply.status(400).send({ 
+          success: false, 
+          message: 'Username and password are required.' 
         });
       }
 
-      // Find user by username
+      // Find user
       const user = await prisma.user.findUnique({
-        where: { username },
-        include: {
-          role: true
-        }
+        where: { username }
       });
 
-      // Check if user exists
-      if (!user) {
-        return reply.status(401).send({
-          error: 'Invalid username or password'
-        });
-      }
-
-      // Check if user is active
-      if (!user.isActive) {
-        return reply.status(403).send({
-          error: 'Account is disabled'
+      if (!user || !user.isActive) {
+        return reply.status(401).send({ 
+          success: false, 
+          message: 'Invalid username or password.' 
         });
       }
 
       // Verify password
-      const isPasswordValid = await comparePassword(password, user.password);
-
-      if (!isPasswordValid) {
-        return reply.status(401).send({
-          error: 'Invalid username or password'
+      const isValidPassword = await comparePassword(password, user.password);
+      if (!isValidPassword) {
+        return reply.status(401).send({ 
+          success: false, 
+          message: 'Invalid username or password.' 
         });
       }
 
-      // Update last login time
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { lastLoginAt: new Date() }
-      });
-
-      // Generate JWT token
+      // Generate token
       const token = generateToken(user);
 
-      // Remove password from response
-      const { password: _, ...userWithoutPassword } = user;
-
-      return reply.send({
-        message: 'Login successful',
-        token,
-        user: userWithoutPassword
+      // Set cookie
+      reply.setCookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 // 7 days in seconds
       });
 
+      // Return user info (without password)
+      return reply.send({
+        success: true,
+        message: 'Login successful.',
+        data: {
+          id: user.id,
+          username: user.username,
+          fullName: user.fullName,
+          role: user.role,
+          token
+        }
+      });
     } catch (error) {
-      app.log.error(error);
-      return reply.status(500).send({
-        error: 'Login failed'
+      app.log.error('Login error:', error);
+      return reply.status(500).send({ 
+        success: false, 
+        message: 'Login failed.' 
       });
     }
+  });
+
+  /**
+   * POST /api/auth/logout
+   * Clear authentication token
+   */
+  app.post('/api/auth/logout', (request, reply) => {
+    reply.clearCookie('token', { path: '/' });
+    return reply.send({ 
+      success: true, 
+      message: 'Logged out successfully.' 
+    });
   });
 
   /**
    * GET /api/auth/me
    * Get current user information (requires authentication)
    */
-  app.get('/api/auth/me', async (request, reply) => {
+  app.get('/api/auth/me', { preHandler: authenticate }, async (request, reply) => {
     try {
-      // This will be protected by auth middleware later
-      const authHeader = request.headers.authorization;
-      
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return reply.status(401).send({
-          error: 'No token provided'
-        });
-      }
-
-      const token = authHeader.substring(7);
-      const { verifyToken } = await import('../utils/auth.js');
-      const decoded = verifyToken(token);
-
-      if (!decoded) {
-        return reply.status(401).send({
-          error: 'Invalid or expired token'
-        });
-      }
-
-      // Get fresh user data
       const user = await prisma.user.findUnique({
-        where: { id: decoded.id },
-        include: {
-          role: true
-        }
-      });
-
-      if (!user || !user.isActive) {
-        return reply.status(404).send({
-          error: 'User not found or inactive'
-        });
-      }
-
-      // Remove password from response
-      const { password: _, ...userWithoutPassword } = user;
-
-      return reply.send({
-        user: userWithoutPassword
-      });
-
-    } catch (error) {
-      app.log.error(error);
-      return reply.status(500).send({
-        error: 'Failed to get user information'
-      });
-    }
-  });
-
-  /**
-   * GET /api/auth/roles
-   * Get all available roles
-   */
-  app.get('/api/auth/roles', async (request, reply) => {
-    try {
-      const roles = await prisma.role.findMany({
+        where: { id: request.user.id },
         select: {
           id: true,
-          name: true,
-          description: true
+          username: true,
+          fullName: true,
+          role: true,
+          isActive: true,
+          createdAt: true
         }
       });
 
-      return reply.send({ roles });
+      if (!user) {
+        return reply.status(404).send({ 
+          success: false, 
+          message: 'User not found.' 
+        });
+      }
 
+      return reply.send({ 
+        success: true, 
+        data: user 
+      });
     } catch (error) {
-      app.log.error(error);
-      return reply.status(500).send({
-        error: 'Failed to fetch roles'
+      app.log.error('Get user error:', error);
+      return reply.status(500).send({ 
+        success: false, 
+        message: 'Failed to get user info.' 
       });
     }
   });

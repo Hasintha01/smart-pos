@@ -4,15 +4,16 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const prisma = new PrismaClient();
 
 export default async function productRoutes(app, options) {
   /**
    * GET /api/products
-   * Fetch all active products
+   * Fetch all active products (All authenticated users)
    */
-  app.get('/api/products', async (request, reply) => {
+  app.get('/api/products', { preHandler: authenticate }, async (request, reply) => {
     try {
       const products = await prisma.product.findMany({
         where: {
@@ -42,9 +43,9 @@ export default async function productRoutes(app, options) {
 
   /**
    * GET /api/products/:id
-   * Fetch single product by ID
+   * Fetch single product by ID (All authenticated users)
    */
-  app.get('/api/products/:id', async (request, reply) => {
+  app.get('/api/products/:id', { preHandler: authenticate }, async (request, reply) => {
     try {
       const { id } = request.params;
       
@@ -78,9 +79,9 @@ export default async function productRoutes(app, options) {
 
   /**
    * POST /api/products
-   * Create a new product
+   * Create a new product (ADMIN and MANAGER only)
    */
-  app.post('/api/products', async (request, reply) => {
+  app.post('/api/products', { preHandler: [authenticate, authorize('ADMIN', 'MANAGER')] }, async (request, reply) => {
     try {
       const {
         name,
@@ -147,9 +148,9 @@ export default async function productRoutes(app, options) {
 
   /**
    * PUT /api/products/:id
-   * Update an existing product
+   * Update an existing product (ADMIN and MANAGER only)
    */
-  app.put('/api/products/:id', async (request, reply) => {
+  app.put('/api/products/:id', { preHandler: [authenticate, authorize('ADMIN', 'MANAGER')] }, async (request, reply) => {
     try {
       const { id } = request.params;
       const {
@@ -218,9 +219,9 @@ export default async function productRoutes(app, options) {
 
   /**
    * DELETE /api/products/:id
-   * Soft delete a product (set isActive to false)
+   * Soft delete a product (ADMIN only)
    */
-  app.delete('/api/products/:id', async (request, reply) => {
+  app.delete('/api/products/:id', { preHandler: [authenticate, authorize('ADMIN')] }, async (request, reply) => {
     try {
       const { id } = request.params;
 

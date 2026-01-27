@@ -6,6 +6,8 @@ notes.txt
 todo.txt
 ROADMAP.md
 POS-IMPLEMENTATION.md
+IMPLEMENTATION-PHASES.md
+UX-COMPARISON.md
 
 # Node modules (in case any are at root)
 node_modules/

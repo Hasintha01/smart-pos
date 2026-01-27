@@ -1,8 +1,17 @@
 import { NavLink } from 'react-router-dom';
-import { ShoppingCart, Package } from 'lucide-react';
+import { ShoppingCart, Package, LogOut, User } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Navigation.css';
 
 function Navigation() {
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    if (window.confirm('Are you sure you want to logout?')) {
+      await logout();
+    }
+  };
+
   return (
     <nav className="main-nav">
       <div className="nav-brand">
@@ -17,6 +26,17 @@ function Navigation() {
           <Package size={18} />
           <span>Products</span>
         </NavLink>
+      </div>
+      <div className="nav-user">
+        <div className="user-info">
+          <User size={18} />
+          <span>{user?.fullName}</span>
+          <span className="user-role">({user?.role})</span>
+        </div>
+        <button onClick={handleLogout} className="logout-btn">
+          <LogOut size={18} />
+          Logout
+        </button>
       </div>
     </nav>
   );

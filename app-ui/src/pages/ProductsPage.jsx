@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Search } from 'lucide-react';
 import ProductModal from '../components/ProductModal';
+import { authFetch } from '../utils/api';
 import '../styles/ProductsPage.css';
 
 function ProductsPage() {
@@ -18,7 +19,7 @@ function ProductsPage() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3001/api/products');
+      const response = await authFetch('http://localhost:3001/api/products');
       const data = await response.json();
       
       if (data.success) {
@@ -51,7 +52,7 @@ function ProductsPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3001/api/products/${productId}`, {
+      const response = await authFetch(`http://localhost:3001/api/products/${productId}`, {
         method: 'DELETE'
       });
 
@@ -77,11 +78,8 @@ function ProductsPage() {
       
       const method = editingProduct ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await authFetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify(productData)
       });
 

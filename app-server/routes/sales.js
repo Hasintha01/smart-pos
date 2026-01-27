@@ -4,15 +4,16 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { authenticate } from '../middleware/auth.js';
 
 const prisma = new PrismaClient();
 
 export default async function salesRoutes(app, options) {
   /**
    * POST /api/sales
-   * Create a new sale with sale items
+   * Create a new sale with sale items (All authenticated users)
    */
-  app.post('/api/sales', async (request, reply) => {
+  app.post('/api/sales', { preHandler: authenticate }, async (request, reply) => {
     try {
       const {
         items,
@@ -23,6 +24,8 @@ export default async function salesRoutes(app, options) {
         cashAmount,
         changeAmount
       } = request.body;
+
+      const userId = request.user.id; // Get userId from authenticated user
 
       // Validation
       if (!items || items.length === 0) {
@@ -41,9 +44,10 @@ export default async function salesRoutes(app, options) {
 
       // Create sale with items in a transaction
       const sale = await prisma.$transaction(async (tx) => {
-        // Create the sale
+        // Create the sale with userId
         const newSale = await tx.sale.create({
           data: {
+            userId, // Add userId here
             total: parseFloat(total),
             items: {
               create: items.map(item => ({
@@ -57,6 +61,13 @@ export default async function salesRoutes(app, options) {
             items: {
               include: {
                 product: true
+              }
+            },
+            user: {
+              select: {
+                id: true,
+                username: true,
+                fullName: true
               }
             }
           }
@@ -117,9 +128,9 @@ export default async function salesRoutes(app, options) {
 
   /**
    * GET /api/sales
-   * Fetch all sales with optional filters
+   * Fetch all sales with optional filters (All authenticated users)
    */
-  app.get('/api/sales', async (request, reply) => {
+  app.get('/api/sales', { preHandler: authenticate }, async (request, reply) => {
     try {
       const { startDate, endDate, limit = 50 } = request.query;
 
@@ -166,9 +177,9 @@ export default async function salesRoutes(app, options) {
 
   /**
    * GET /api/sales/:id
-   * Fetch single sale by ID
+   * Fetch single sale by ID (All authenticated users)
    */
-  app.get('/api/sales/:id', async (request, reply) => {
+  app.get('/api/sales/:id', { preHandler: authenticate }, async (request, reply) => {
     try {
       const { id } = request.params;
 

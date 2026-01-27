@@ -39,9 +39,8 @@ export function generateToken(user) {
   const payload = {
     id: user.id,
     username: user.username,
-    email: user.email,
-    roleId: user.roleId,
-    roleName: user.role?.name || 'Unknown'
+    role: user.role,
+    fullName: user.fullName
   };
 
   return jwt.sign(payload, JWT_SECRET, {
