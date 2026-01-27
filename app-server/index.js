@@ -9,6 +9,7 @@ import cookie from '@fastify/cookie';
 import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import salesRoutes from './routes/sales.js';
+import dashboardRoutes from './routes/dashboard.js';
 
 // Initialize Fastify instance with logging enabled for development
 const app = Fastify({
@@ -28,6 +29,7 @@ await app.register(cookie);
 await app.register(authRoutes);
 await app.register(productRoutes);
 await app.register(salesRoutes);
+await app.register(dashboardRoutes);
 
 /**
  * Health check endpoint
