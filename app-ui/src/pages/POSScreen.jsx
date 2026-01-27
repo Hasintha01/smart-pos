@@ -66,9 +66,21 @@ function POSScreen() {
 
   // Add product to cart
   const addToCart = (product) => {
+    // Check if product has stock
+    if (!product.stockQuantity || product.stockQuantity === 0) {
+      alert(`${product.name} is out of stock!`);
+      return;
+    }
+
     const existingIndex = cart.findIndex((item) => item.id === product.id);
     
     if (existingIndex >= 0) {
+      // Check if we can add more
+      const currentQty = cart[existingIndex].qty;
+      if (currentQty + 1 > product.stockQuantity) {
+        alert(`Only ${product.stockQuantity} units available in stock!`);
+        return;
+      }
       // Update quantity
       const newCart = [...cart];
       newCart[existingIndex].qty += 1;
@@ -90,13 +102,21 @@ function POSScreen() {
   // Update cart item quantity
   const updateQuantity = (index, change) => {
     const newCart = [...cart];
-    newCart[index].qty += change;
+    const item = newCart[index];
+    const newQty = item.qty + change;
     
-    if (newCart[index].qty <= 0) {
+    // Check stock availability when increasing
+    if (change > 0 && newQty > item.stockQuantity) {
+      alert(`Only ${item.stockQuantity} units available in stock!`);
+      return;
+    }
+    
+    if (newQty <= 0) {
       // Remove item if qty is 0
       newCart.splice(index, 1);
       setSelectedCartIndex(-1);
     } else {
+      newCart[index].qty = newQty;
       setCart(newCart);
     }
   };

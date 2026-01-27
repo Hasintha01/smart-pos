@@ -30,7 +30,7 @@ export default async function dashboardRoutes(app, options) {
           }
         },
         include: {
-          saleItems: {
+          items: {
             include: {
               product: {
                 select: {
@@ -45,12 +45,12 @@ export default async function dashboardRoutes(app, options) {
       // Calculate today's metrics
       const todayTotal = todaySales.reduce((sum, sale) => sum + sale.total, 0);
       const todayItemsSold = todaySales.reduce((sum, sale) => 
-        sum + sale.saleItems.reduce((itemSum, item) => itemSum + item.quantity, 0), 0
+        sum + sale.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0
       );
       
       // Calculate today's profit (selling price - cost price)
       const todayProfit = todaySales.reduce((sum, sale) => {
-        const saleProfit = sale.saleItems.reduce((itemSum, item) => {
+        const saleProfit = sale.items.reduce((itemSum, item) => {
           const costPrice = item.product.costPrice || 0;
           const profit = (item.price - costPrice) * item.quantity;
           return itemSum + profit;
@@ -128,7 +128,7 @@ export default async function dashboardRoutes(app, options) {
               username: true
             }
           },
-          saleItems: {
+          items: {
             include: {
               product: {
                 select: {

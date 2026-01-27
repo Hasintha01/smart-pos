@@ -5,7 +5,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { hashPassword, comparePassword, generateToken } from '../utils/auth.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const prisma = new PrismaClient();
 
@@ -13,9 +13,9 @@ export default async function authRoutes(app) {
 
   /**
    * POST /api/auth/register
-   * Register a new user (Admin only in production - add middleware later)
+   * Register a new user (Admin only)
    */
-  app.post('/api/auth/register', async (request, reply) => {
+  app.post('/api/auth/register', { preHandler: [authenticate, authorize('ADMIN')] }, async (request, reply) => {
     try {
       const { username, password, fullName, role } = request.body;
 
@@ -119,7 +119,7 @@ export default async function authRoutes(app) {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         path: '/',
-        maxAge: 7 * 24 * 60 * 60 // 7 days in seconds
+        maxAge: 7 * 24 * 60 * 60 * 1000  // 7 days in milliseconds
       });
 
       // Return user info (without password)

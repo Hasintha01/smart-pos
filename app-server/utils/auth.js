@@ -8,7 +8,7 @@ import jwt from 'jsonwebtoken';
 
 // Secret key for JWT - in production, this should be in environment variables
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-in-production';
-const JWT_EXPIRES_IN = '24h'; // Token valid for 24 hours
+const JWT_EXPIRES_IN = '7d'; // Token valid for 7 days
 
 /**
  * Hash a plain text password using bcrypt

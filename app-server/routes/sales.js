@@ -91,7 +91,7 @@ export default async function salesRoutes(app, options) {
           await tx.product.update({
             where: { id: productId },
             data: {
-              quantity: {
+              stockQuantity: {
                 decrement: quantity
               }
             }
@@ -102,7 +102,7 @@ export default async function salesRoutes(app, options) {
             data: {
               productId: productId,
               quantity: -quantity,
-              type: 'sale',
+              type: 'SALE',
               reason: `Sale #${newSale.id}`
             }
           });

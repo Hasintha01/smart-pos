@@ -23,7 +23,7 @@ model Product {
   sellingPrice  Float              // Selling price shown to customers
   
   // Inventory tracking
-  quantity      Int      @default(0)        // Current stock quantity
+  stockQuantity Int      @default(0)        // Current stock quantity
   reorderLevel  Int      @default(10)       // Minimum stock before reorder alert
   
   // Status and organization
@@ -90,6 +90,7 @@ model User {
   
   // Relations
   sales          Sale[]                   // Sales made by this user
+  stockMovements StockMovement[]          // Stock adjustments made by this user
 }
 
 // Sale model for transaction records
@@ -155,14 +156,18 @@ model Expense {
 // StockMovement model for inventory tracking and audit trail
 model StockMovement {
   id          Int      @id @default(autoincrement())
+  type        String                      // STOCK_IN, STOCK_OUT, SALE, ADJUSTMENT, DAMAGE, RETURN
   quantity    Int                         // Quantity changed (positive = added, negative = removed)
-  type        String                      // "purchase", "sale", "adjustment", "damage", "return"
   reason      String?                     // Reason for adjustment/damage
+  notes       String?                     // Additional notes
   reference   String?                     // PO number, invoice, etc.
   
   // Relations
   productId   Int
   product     Product  @relation(fields: [productId], references: [id])
+  
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
   
   // Timestamps
   createdAt   DateTime @default(now())

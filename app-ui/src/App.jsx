@@ -7,6 +7,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import POSScreen from './pages/POSScreen';
 import ProductsPage from './pages/ProductsPage';
+import DashboardPage from './pages/DashboardPage';
+import InventoryPage from './pages/InventoryPage';
 import LoginPage from './pages/LoginPage';
 import Navigation from './components/Navigation';
 import './index.css';
@@ -62,10 +64,26 @@ function AppContent() {
           } 
         />
         <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
           path="/products" 
           element={
             <ProtectedRoute>
               <ProductsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/inventory" 
+          element={
+            <ProtectedRoute>
+              <InventoryPage />
             </ProtectedRoute>
           } 
         />
