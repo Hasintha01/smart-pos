@@ -10,6 +10,7 @@ import ProductsPage from './pages/ProductsPage';
 import DashboardPage from './pages/DashboardPage';
 import InventoryPage from './pages/InventoryPage';
 import ReportsPage from './pages/ReportsPage';
+import SettingsPage from './pages/SettingsPage';
 import LoginPage from './pages/LoginPage';
 import Navigation from './components/Navigation';
 import './index.css';
@@ -93,6 +94,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <ReportsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings" 
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
             </ProtectedRoute>
           } 
         />

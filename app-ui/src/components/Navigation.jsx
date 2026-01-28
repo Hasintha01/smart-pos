@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { ShoppingCart, Package, LogOut, User, LayoutDashboard, ClipboardList, FileText } from 'lucide-react';
+import { ShoppingCart, Package, LogOut, User, LayoutDashboard, ClipboardList, FileText, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Navigation.css';
 
@@ -38,6 +38,12 @@ function Navigation() {
           <NavLink to="/reports" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             <FileText size={18} />
             <span>Reports</span>
+          </NavLink>
+        )}
+        {user?.role === 'ADMIN' && (
+          <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <Settings size={18} />
+            <span>Settings</span>
           </NavLink>
         )}
       </div>

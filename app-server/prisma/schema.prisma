@@ -172,3 +172,36 @@ model StockMovement {
   // Timestamps
   createdAt   DateTime @default(now())
 }
+
+// Settings model for shop configuration (singleton pattern - only one record)
+model Settings {
+  id                  Int      @id @default(autoincrement())
+  
+  // Shop Information
+  shopName            String   @default("Smart POS")
+  shopAddress         String?
+  shopPhone           String?
+  shopEmail           String?
+  shopLogo            String?                    // Base64 encoded image or file path
+  
+  // Tax Configuration
+  taxEnabled          Boolean  @default(false)
+  taxPercentage       Float    @default(0)
+  taxLabel            String   @default("VAT")   // VAT, GST, Tax, etc.
+  
+  // Currency Settings
+  currency            String   @default("LKR")
+  currencySymbol      String   @default("Rs.")
+  
+  // Receipt Settings
+  receiptHeader       String?                    // Custom header text for receipts
+  receiptFooter       String   @default("Thank you for your business!")
+  showLogo            Boolean  @default(true)
+  
+  // System Settings
+  lowStockThreshold   Int      @default(10)      // Default low stock alert level
+  
+  // Timestamps
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}

@@ -42,13 +42,25 @@ export default async function salesRoutes(app, options) {
         });
       }
 
+      // Get settings to check if tax is enabled
+      const settings = await prisma.settings.findFirst();
+      
+      // Calculate tax if enabled
+      let taxAmount = 0;
+      let totalWithTax = parseFloat(total);
+      
+      if (settings && settings.taxEnabled) {
+        taxAmount = (parseFloat(subtotal || total) * settings.taxPercentage) / 100;
+        totalWithTax = parseFloat(subtotal || total) + taxAmount;
+      }
+
       // Create sale with items in a transaction
       const sale = await prisma.$transaction(async (tx) => {
-        // Create the sale with userId
+        // Create the sale with userId and tax-adjusted total
         const newSale = await tx.sale.create({
           data: {
             userId, // Add userId here
-            total: parseFloat(total),
+            total: totalWithTax,
             items: {
               create: items.map(item => ({
                 productId: item.id || item.productId,
@@ -77,7 +89,7 @@ export default async function salesRoutes(app, options) {
         await tx.payment.create({
           data: {
             saleId: newSale.id,
-            amount: cashAmount ? parseFloat(cashAmount) : parseFloat(total),
+            amount: cashAmount ? parseFloat(cashAmount) : totalWithTax,
             paymentMethod: paymentType || 'cash',
             reference: paymentType === 'cash' ? null : `${paymentType}-${Date.now()}`
           }
@@ -114,6 +126,16 @@ export default async function salesRoutes(app, options) {
       return reply.status(201).send({
         success: true,
         data: sale,
+        taxInfo: settings && settings.taxEnabled ? {
+          taxEnabled: true,
+          taxPercentage: settings.taxPercentage,
+          taxLabel: settings.taxLabel,
+          taxAmount: taxAmount,
+          subtotal: parseFloat(subtotal || total),
+          totalWithTax: totalWithTax
+        } : {
+          taxEnabled: false
+        },
         message: 'Sale completed successfully'
       });
     } catch (error) {
