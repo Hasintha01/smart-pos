@@ -1,6 +1,6 @@
 /**
  * Sales Routes
- * Handles all sales-related API endpoints
+ * Handles sales transactions and related operations
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -8,11 +8,8 @@ import { authenticate } from '../middleware/auth.js';
 
 const prisma = new PrismaClient();
 
-export default async function salesRoutes(app, options) {
-  /**
-   * POST /api/sales
-   * Create a new sale with sale items (All authenticated users)
-   */
+export default async function salesRoutes(app) {
+  // Create a new sale
   app.post('/api/sales', { preHandler: authenticate }, async (request, reply) => {
     try {
       const {

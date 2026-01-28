@@ -1,10 +1,15 @@
+/**
+ * Settings Routes
+ * Handles system settings and configuration
+ */
+
 import { PrismaClient } from '@prisma/client';
 import { authenticate, authorize } from '../middleware/auth.js';
 
 const prisma = new PrismaClient();
 
-async function settingsRoutes(app) {
-  // Get settings (accessible by all authenticated users)
+export default async function settingsRoutes(app) {
+  // Get current settings
   app.get('/api/settings', { preHandler: authenticate }, async (request, reply) => {
     try {
       let settings = await prisma.settings.findFirst();
@@ -190,5 +195,3 @@ async function settingsRoutes(app) {
     }
   });
 }
-
-export default settingsRoutes;
