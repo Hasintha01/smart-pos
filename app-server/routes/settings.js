@@ -41,7 +41,7 @@ async function settingsRoutes(app) {
 
   // Update settings (admin only)
   app.put('/api/settings', { 
-    preHandler: [authenticate, authorize(['ADMIN'])] 
+    preHandler: [authenticate, authorize('ADMIN')] 
   }, async (request, reply) => {
     try {
       const {
@@ -62,14 +62,14 @@ async function settingsRoutes(app) {
       } = request.body;
 
       // Validation
-      if (taxEnabled && (taxPercentage < 0 || taxPercentage > 100)) {
+      if (taxEnabled && taxPercentage !== undefined && (taxPercentage < 0 || taxPercentage > 100)) {
         return reply.code(400).send({
           success: false,
           message: 'Tax percentage must be between 0 and 100'
         });
       }
 
-      if (lowStockThreshold && lowStockThreshold < 0) {
+      if (lowStockThreshold !== undefined && lowStockThreshold !== null && lowStockThreshold < 0) {
         return reply.code(400).send({
           success: false,
           message: 'Low stock threshold must be a positive number'
@@ -131,16 +131,18 @@ async function settingsRoutes(app) {
       });
     } catch (error) {
       console.error('Update settings error:', error);
+      console.error('Error details:', error.message, error.stack);
       reply.code(500).send({
         success: false,
-        message: 'Failed to update settings'
+        message: 'Failed to update settings',
+        error: error.message
       });
     }
   });
 
   // Reset settings to default (admin only)
   app.post('/api/settings/reset', { 
-    preHandler: [authenticate, authorize(['ADMIN'])] 
+    preHandler: [authenticate, authorize('ADMIN')] 
   }, async (request, reply) => {
     try {
       // Find existing settings

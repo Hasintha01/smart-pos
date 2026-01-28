@@ -22,7 +22,9 @@ const app = Fastify({
 // Enable CORS to allow frontend to communicate with backend
 await app.register(cors, {
   origin: ['http://localhost:5173', 'http://localhost:5174'], // Vite dev server ports
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Explicitly allow all HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'] // Allow necessary headers
 });
 
 // Register cookie parser

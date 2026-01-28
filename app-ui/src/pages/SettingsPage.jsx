@@ -90,11 +90,11 @@ function SettingsPage() {
         // Clear message after 3 seconds
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
       } else {
-        setMessage({ type: 'error', text: data.message || 'Failed to save settings' });
+        setMessage({ type: 'error', text: data.message || data.error || 'Failed to save settings' });
       }
     } catch (error) {
       console.error('Save settings error:', error);
-      setMessage({ type: 'error', text: 'Failed to save settings' });
+      setMessage({ type: 'error', text: error.message || 'Failed to save settings' });
     } finally {
       setSaving(false);
     }

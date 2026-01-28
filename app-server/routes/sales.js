@@ -113,6 +113,7 @@ export default async function salesRoutes(app, options) {
           await tx.stockMovement.create({
             data: {
               productId: productId,
+              userId: userId,
               quantity: -quantity,
               type: 'SALE',
               reason: `Sale #${newSale.id}`
