@@ -202,9 +202,9 @@ function DashboardPage() {
                     {recentSales.map((sale) => (
                       <tr key={sale.id}>
                         <td>{new Date(sale.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                        <td>{sale.saleItems.length} items</td>
+                        <td>{sale.items?.length || 0} items</td>
                         <td className="amount">{formatCurrency(sale.total)}</td>
-                        <td>{sale.user.username}</td>
+                        <td>{sale.user?.username || 'Unknown'}</td>
                       </tr>
                     ))}
                   </tbody>
