@@ -7,6 +7,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import POSScreen from './pages/POSScreen';
 import ProductsPage from './pages/ProductsPage';
+import CategoriesPage from './pages/CategoriesPage';
 import DashboardPage from './pages/DashboardPage';
 import InventoryPage from './pages/InventoryPage';
 import ReportsPage from './pages/ReportsPage';
@@ -78,6 +79,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <ProductsPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/categories" 
+          element={
+            <ProtectedRoute>
+              <CategoriesPage />
             </ProtectedRoute>
           } 
         />

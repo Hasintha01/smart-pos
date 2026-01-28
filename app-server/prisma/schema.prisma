@@ -96,7 +96,12 @@ model User {
 // Sale model for transaction records
 model Sale {
   id          Int      @id @default(autoincrement())
-  total       Float
+  subtotal    Float                       // Total before discount and tax
+  discountType String?                    // "percentage" or "fixed" or null
+  discountValue Float   @default(0)       // Discount amount or percentage
+  discountAmount Float  @default(0)       // Actual discount amount applied
+  taxAmount   Float    @default(0)        // Tax amount applied
+  total       Float                       // Final total after discount and tax
   
   // User tracking
   userId      Int                         // User who made this sale (required)
@@ -115,6 +120,10 @@ model SaleItem {
   id          Int      @id @default(autoincrement())
   quantity    Int
   price       Float                       // Price at time of sale (frozen)
+  discountType String?                    // "percentage" or "fixed" or null (item-level discount)
+  discountValue Float   @default(0)       // Discount amount or percentage
+  discountAmount Float  @default(0)       // Actual discount amount applied
+  total       Float                       // Total for this line item
   
   // Relations
   productId   Int

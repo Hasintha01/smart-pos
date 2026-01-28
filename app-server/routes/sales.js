@@ -45,27 +45,53 @@ export default async function salesRoutes(app, options) {
       // Get settings to check if tax is enabled
       const settings = await prisma.settings.findFirst();
       
+      // Calculate discount amount
+      let discountAmount = 0;
+      let discountType = null;
+      let discountValue = 0;
+      
+      if (discount && discount.value > 0) {
+        discountType = discount.type; // 'percentage' or 'fixed'
+        discountValue = parseFloat(discount.value);
+        
+        if (discountType === 'percentage') {
+          discountAmount = (parseFloat(subtotal) * discountValue) / 100;
+        } else {
+          discountAmount = discountValue;
+        }
+      }
+      
       // Calculate tax if enabled
       let taxAmount = 0;
-      let totalWithTax = parseFloat(total);
+      const subtotalAfterDiscount = parseFloat(subtotal) - discountAmount;
       
       if (settings && settings.taxEnabled) {
-        taxAmount = (parseFloat(subtotal || total) * settings.taxPercentage) / 100;
-        totalWithTax = parseFloat(subtotal || total) + taxAmount;
+        taxAmount = (subtotalAfterDiscount * settings.taxPercentage) / 100;
       }
+      
+      const finalTotal = subtotalAfterDiscount + taxAmount;
 
       // Create sale with items in a transaction
       const sale = await prisma.$transaction(async (tx) => {
-        // Create the sale with userId and tax-adjusted total
+        // Create the sale with discount and tax
         const newSale = await tx.sale.create({
           data: {
-            userId, // Add userId here
-            total: totalWithTax,
+            userId,
+            subtotal: parseFloat(subtotal),
+            discountType,
+            discountValue,
+            discountAmount,
+            taxAmount,
+            total: finalTotal,
             items: {
               create: items.map(item => ({
                 productId: item.id || item.productId,
                 quantity: parseInt(item.qty || item.quantity),
-                price: parseFloat(item.price)
+                price: parseFloat(item.price),
+                discountType: item.discountType || null,
+                discountValue: item.discountValue || 0,
+                discountAmount: item.discountAmount || 0,
+                total: parseFloat(item.price) * parseInt(item.qty || item.quantity) - (item.discountAmount || 0)
               }))
             }
           },
@@ -89,7 +115,7 @@ export default async function salesRoutes(app, options) {
         await tx.payment.create({
           data: {
             saleId: newSale.id,
-            amount: cashAmount ? parseFloat(cashAmount) : totalWithTax,
+            amount: cashAmount ? parseFloat(cashAmount) : finalTotal,
             paymentMethod: paymentType || 'cash',
             reference: paymentType === 'cash' ? null : `${paymentType}-${Date.now()}`
           }
@@ -127,15 +153,20 @@ export default async function salesRoutes(app, options) {
       return reply.status(201).send({
         success: true,
         data: sale,
-        taxInfo: settings && settings.taxEnabled ? {
-          taxEnabled: true,
-          taxPercentage: settings.taxPercentage,
-          taxLabel: settings.taxLabel,
-          taxAmount: taxAmount,
-          subtotal: parseFloat(subtotal || total),
-          totalWithTax: totalWithTax
-        } : {
-          taxEnabled: false
+        saleInfo: {
+          subtotal: parseFloat(subtotal),
+          discount: discountAmount > 0 ? {
+            type: discountType,
+            value: discountValue,
+            amount: discountAmount
+          } : null,
+          tax: settings && settings.taxEnabled ? {
+            enabled: true,
+            percentage: settings.taxPercentage,
+            label: settings.taxLabel,
+            amount: taxAmount
+          } : { enabled: false },
+          total: finalTotal
         },
         message: 'Sale completed successfully'
       });

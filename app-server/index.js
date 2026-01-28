@@ -13,6 +13,7 @@ import dashboardRoutes from './routes/dashboard.js';
 import inventoryRoutes from './routes/inventory.js';
 import reportsRoutes from './routes/reports.js';
 import settingsRoutes from './routes/settings.js';
+import categoryRoutes from './routes/categories.js';
 
 // Initialize Fastify instance with logging enabled for development
 const app = Fastify({
@@ -33,6 +34,7 @@ await app.register(cookie);
 // Register routes
 await app.register(authRoutes);
 await app.register(productRoutes);
+await app.register(categoryRoutes);
 await app.register(salesRoutes);
 await app.register(dashboardRoutes);
 await app.register(inventoryRoutes);
