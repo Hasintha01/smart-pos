@@ -9,6 +9,7 @@ import POSScreen from './pages/POSScreen';
 import ProductsPage from './pages/ProductsPage';
 import DashboardPage from './pages/DashboardPage';
 import InventoryPage from './pages/InventoryPage';
+import ReportsPage from './pages/ReportsPage';
 import LoginPage from './pages/LoginPage';
 import Navigation from './components/Navigation';
 import './index.css';
@@ -84,6 +85,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <InventoryPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/reports" 
+          element={
+            <ProtectedRoute>
+              <ReportsPage />
             </ProtectedRoute>
           } 
         />
