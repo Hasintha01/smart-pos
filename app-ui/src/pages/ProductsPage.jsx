@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Search } from 'lucide-react';
 import ProductModal from '../components/ProductModal';
 import { authFetch } from '../utils/api';
+import { showSuccess, showError } from '../utils/toast';
 import '../styles/ProductsPage.css';
 
 function ProductsPage() {
@@ -59,14 +60,14 @@ function ProductsPage() {
       const data = await response.json();
 
       if (data.success) {
-        alert('Product deleted successfully');
+        showSuccess('Product deleted successfully');
         fetchProducts();
       } else {
-        alert('Failed to delete product: ' + data.error);
+        showError('Failed to delete product: ' + data.error);
       }
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('Failed to delete product');
+      showError('Failed to delete product');
     }
   };
 
@@ -86,15 +87,15 @@ function ProductsPage() {
       const data = await response.json();
 
       if (data.success) {
-        alert(data.message);
+        showSuccess(data.message);
         setShowModal(false);
         fetchProducts();
       } else {
-        alert('Failed to save product: ' + data.error);
+        showError('Failed to save product: ' + data.error);
       }
     } catch (error) {
       console.error('Error saving product:', error);
-      alert('Failed to save product');
+      showError('Failed to save product');
     }
   };
 

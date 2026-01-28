@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, Save, RotateCcw, Store, Receipt, DollarSign, Package } from 'lucide-react';
 import { authFetch } from '../utils/api';
+import Loading from '../components/Loading';
 import '../styles/SettingsPage.css';
 
 function SettingsPage() {
@@ -132,12 +133,7 @@ function SettingsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="settings-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading settings...</p>
-      </div>
-    );
+    return <Loading message="Loading settings..." />;
   }
 
   return (

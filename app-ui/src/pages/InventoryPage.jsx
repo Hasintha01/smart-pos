@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Package, Plus, Minus, Edit, AlertTriangle, TrendingUp, TrendingDown, ClipboardList } from 'lucide-react';
 import StockModal from '../components/StockModal';
 import { authFetch } from '../utils/api';
+import Loading from '../components/Loading';
 import '../styles/InventoryPage.css';
 
 function InventoryPage() {
@@ -60,12 +61,7 @@ function InventoryPage() {
   const formatCurrency = (val) => new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(val);
 
   if (loading) {
-    return (
-      <div className="inventory-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading inventory...</p>
-      </div>
-    );
+    return <Loading message="Loading inventory..." />;
   }
 
   return (

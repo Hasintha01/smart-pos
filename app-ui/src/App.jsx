@@ -4,6 +4,7 @@
  */
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import POSScreen from './pages/POSScreen';
 import ProductsPage from './pages/ProductsPage';
@@ -14,6 +15,7 @@ import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import LoginPage from './pages/LoginPage';
 import Navigation from './components/Navigation';
+import KeyboardShortcuts from './components/KeyboardShortcuts';
 import './index.css';
 
 // Protected Route Component
@@ -125,6 +127,8 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <Toaster />
+        <KeyboardShortcuts />
         <AppContent />
       </AuthProvider>
     </Router>

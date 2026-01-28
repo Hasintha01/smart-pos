@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Tag, Plus, Edit2, Trash2, X, Save, Package } from 'lucide-react';
 import { authFetch } from '../utils/api';
+import Loading from '../components/Loading';
 import '../styles/CategoriesPage.css';
 
 function CategoriesPage() {
@@ -120,7 +121,7 @@ function CategoriesPage() {
   };
 
   if (loading) {
-    return <div className="loading-state">Loading categories...</div>;
+    return <Loading message="Loading categories..." />;
   }
 
   return (

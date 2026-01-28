@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import PaymentModal from '../components/PaymentModal';
 import Receipt from '../components/Receipt';
 import { authFetch } from '../utils/api';
+import { showWarning, showError } from '../utils/toast';
+import useDebounce from '../hooks/useDebounce';
 import '../styles/POSScreen.css';
 
 function POSScreen() {
@@ -48,16 +50,19 @@ function POSScreen() {
     searchInputRef.current?.focus();
   }, []);
 
-  // Filter products based on search
+  // Debounce search query to reduce filtering operations
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  // Filter products based on debounced search
   useEffect(() => {
-    const query = searchQuery.toLowerCase();
+    const query = debouncedSearchQuery.toLowerCase();
     const filtered = products.filter(
       (p) =>
         p.name.toLowerCase().includes(query) ||
         p.barcode.includes(query)
     );
     setFilteredProducts(filtered);
-  }, [searchQuery, products]);
+  }, [debouncedSearchQuery, products]);
 
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => sum + (item.sellingPrice || item.price) * item.qty, 0);
@@ -68,7 +73,7 @@ function POSScreen() {
   const addToCart = (product) => {
     // Check if product has stock
     if (!product.stockQuantity || product.stockQuantity === 0) {
-      alert(`${product.name} is out of stock!`);
+      showWarning(`${product.name} is out of stock!`);
       return;
     }
 
@@ -78,7 +83,7 @@ function POSScreen() {
       // Check if we can add more
       const currentQty = cart[existingIndex].qty;
       if (currentQty + 1 > product.stockQuantity) {
-        alert(`Only ${product.stockQuantity} units available in stock!`);
+        showWarning(`Only ${product.stockQuantity} units available in stock!`);
         return;
       }
       // Update quantity
@@ -107,7 +112,7 @@ function POSScreen() {
     
     // Check stock availability when increasing
     if (change > 0 && newQty > item.stockQuantity) {
-      alert(`Only ${item.stockQuantity} units available in stock!`);
+      showWarning(`Only ${item.stockQuantity} units available in stock!`);
       return;
     }
     
@@ -250,11 +255,11 @@ function POSScreen() {
         searchInputRef.current?.focus();
       } else {
         console.error('Failed to save sale:', result.error);
-        alert('Sale completed but failed to save: ' + result.error);
+        showError('Sale completed but failed to save: ' + result.error);
       }
     } catch (error) {
       console.error('Error saving sale:', error);
-      alert('Sale completed but failed to save. Check console for details.');
+      showError('Sale completed but failed to save. Check console for details.');
     }
   };
 
