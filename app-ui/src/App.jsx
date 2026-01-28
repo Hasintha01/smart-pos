@@ -48,73 +48,75 @@ function AppContent() {
   return (
     <div className="app-container">
       {user && <Navigation />}
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route 
-          path="/" 
-          element={
-            <ProtectedRoute>
-              <Navigate to="/pos" replace />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/pos" 
-          element={
-            <ProtectedRoute>
-              <POSScreen />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/dashboard" 
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/products" 
-          element={
-            <ProtectedRoute>
-              <ProductsPage />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/categories" 
-          element={
-            <ProtectedRoute>
-              <CategoriesPage />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/inventory" 
-          element={
-            <ProtectedRoute>
-              <InventoryPage />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/reports" 
-          element={
-            <ProtectedRoute>
-              <ReportsPage />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/settings" 
-          element={
-            <ProtectedRoute>
-              <SettingsPage />
-            </ProtectedRoute>
-          } 
-        />
-      </Routes>
+      <div className="app-content">
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <Navigate to="/pos" replace />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/pos" 
+            element={
+              <ProtectedRoute>
+                <POSScreen />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/products" 
+            element={
+              <ProtectedRoute>
+                <ProductsPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/categories" 
+            element={
+              <ProtectedRoute>
+                <CategoriesPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/inventory" 
+            element={
+              <ProtectedRoute>
+                <InventoryPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/reports" 
+            element={
+              <ProtectedRoute>
+                <ReportsPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </div>
     </div>
   );
 }
