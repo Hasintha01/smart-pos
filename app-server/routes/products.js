@@ -224,9 +224,18 @@ export default async function productRoutes(app, options) {
   app.delete('/api/products/:id', { preHandler: [authenticate, authorize('ADMIN')] }, async (request, reply) => {
     try {
       const { id } = request.params;
+      
+      // Validate ID
+      const productId = parseInt(id);
+      if (isNaN(productId)) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Invalid product ID'
+        });
+      }
 
       const product = await prisma.product.update({
-        where: { id: parseInt(id) },
+        where: { id: productId },
         data: {
           isActive: false
         }
