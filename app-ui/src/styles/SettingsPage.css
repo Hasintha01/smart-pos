@@ -45,31 +45,39 @@
 }
 
 .btn-save {
-  background: #4CAF50;
+  background: #27ae60;
   color: white;
 }
 
 .btn-save:hover:not(:disabled) {
-  background: #45a049;
+  background: #229954;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(39,174,96,0.3);
 }
 
 .btn-save:disabled {
-  background: #ccc;
+  background: #bdc3c7;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-reset {
-  background: #ff9800;
+  background: #e74c3c;
   color: white;
 }
 
 .btn-reset:hover:not(:disabled) {
-  background: #f57c00;
+  background: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231,76,60,0.3);
 }
 
 .btn-reset:disabled {
-  background: #ccc;
+  background: #bdc3c7;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Message Banner */
