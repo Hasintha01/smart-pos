@@ -1,5 +1,8 @@
 # Root-level gitignore for Smart POS project
 
+# Documentation (private)
+DOCUMENTATION.md
+
 # Project planning and personal notes
 plan.txt
 notes.txt
