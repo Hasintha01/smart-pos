@@ -425,18 +425,3 @@ Contributions are welcome! Please follow these guidelines:
 
 This project is licensed under the MIT License. See the LICENSE file for details.
 
-## Acknowledgments
-
-- Built with care using React and Fastify
-- Icons by [Lucide](https://lucide.dev/)
-- Inspired by modern POS systems
-
-## Support
-
-For issues, questions, or suggestions:
-- Open an issue on GitHub
-- Email: support@smartpos.example.com
-
----
-
-**Made by the Smart POS Team**
